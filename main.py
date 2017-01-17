@@ -35,25 +35,25 @@ def dl_stickers(page):
         imageurl = cssutils.parseStyle(imageurl)
         imageurl = imageurl['background-image']
         imageurl = imageurl.replace('url("', '').replace(';compress=true")', '')
+        print imageurl
         response = urllib2.urlopen(imageurl)
         resize_sticker(response, imageurl)
 
 def resize_sticker(image, filename):
-    print("Resize stickers;")
     filen = filename[-7:]
     with Image(file=image) as img:
         if img.width > img.height:
-            ratio = 512/img.width
+            ratio = 512.0/img.width
         if img.height > img.width:
-            ratio = 512/img.height
+            ratio = 512.0/img.height
         img.resize(int(img.width*ratio), int(img.height*ratio), 'mitchell')
         img.save(filename=("downloads/" + filen))
 
 def send_stickers(page):
-    print("Received command for", page)
+    print("Received command")
     dl_stickers(page)
     print("zip stickers;")
-    with ZipFile('stickers.zip', 'w') as stickerzip:
+    with ZipFile(page.title.string+'.zip', 'w') as stickerzip:
         for root, dirs, files in os.walk("downloads/"):
             for file in files:
                 stickerzip.write(os.path.join(root, file))
@@ -61,7 +61,7 @@ def send_stickers(page):
     requests.post(URL + 'sendDocument', params=dict(
         chat_id = update['message']['chat']['id']
     ), files=dict(
-        document = open('stickers.zip', 'rb')
+        document = open(page.title.string+'.zip', 'rb')
     ))
     print("sent;)")
 
